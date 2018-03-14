@@ -34,15 +34,14 @@ class Peer(asyncio.Protocol, EventEmitter):
 
         @self.on('version')
         def on_version(message):
+            host, port = self.transport.get_extra_info('peername')
             self.version = message.version
             self.subversion = message.subversion
             self.best_height = message.start_height
-            self.logger.info({
-                'ip': self.transport.get_extra_info('peername'),
-                'version': self.version,
-                'subversion': self.subversion,
-                'best_height': self.best_height
-            })
+            self.logger.info(
+                'Connected to peer %s, version: %d, subversion: %s',
+                host + ':' + str(port), self.version, self.subversion
+            )
             verack_response = self.messages.Verack()
             self.send_message(verack_response)
             if not self.version_sent:
@@ -79,8 +78,11 @@ class Peer(asyncio.Protocol, EventEmitter):
     def connection_lost(self, error):
         if error:
             self.logger.exception(error)
-        else:
-            self.logger.debug('connection lost')
+        host, port = self.transport.get_extra_info('peername')
+        self.logger.info(
+            'Disconnected to peer %s, version: %d, subversion: %s',
+            host + ':' + str(port), self.version, self.subversion
+        )
         super().connection_lost(error)
 
     def connect(self):
