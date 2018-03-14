@@ -13,11 +13,11 @@ class Peer(asyncio.Protocol, EventEmitter):
     READY = 'ready'
     MAX_RECEIVE_BUFFER = 10000000
 
-    def __init__(self, *, host, port, network, future):
+    def __init__(self, event_loop, *, host, port = None, network):
         super().__init__()
-        self.logger = logging.getLogger('Node')
+        self.logger = logging.getLogger('Peer')
         self.receive_buffer = BytesBuffer()
-        self.status = self.DISCONNECTED
+        self.status = Peer.DISCONNECTED
         self.network = Network.get(network)
         self.host = host
         self.port = port or self.network.port
@@ -26,15 +26,36 @@ class Peer(asyncio.Protocol, EventEmitter):
         self.version = 0
         self.subversion = None
         self.version_sent = False
-        self.future = future
-        self.on('ping', self.on_ping)
-        self.on('version', self.on_version)
-        self.on('verack', self.on_verack)
+        self.future = event_loop.create_connection(lambda: self, host = self.host, port = self.port)
+
+        @self.on('ping')
+        def on_ping(message):
+            self.send_pong(message.nonce)
+
+        @self.on('version')
+        def on_version(message):
+            self.version = message.version
+            self.subversion = message.subversion
+            self.best_height = message.start_height
+            self.logger.info({
+                'ip': self.transport.get_extra_info('peername'),
+                'version': self.version,
+                'subversion': self.subversion,
+                'best_height': self.best_height
+            })
+            verack_response = self.messages.Verack()
+            self.send_message(verack_response)
+            if not self.version_sent:
+                self.send_version()
+
+        @self.on('verack')
+        def on_verack(message):
+            self.status = Peer.READY
+            self.emit('ready')
 
     def connection_made(self, transport):
-        self.logger.info('connection made')
         self.transport = transport
-        self.status = self.CONNECTED
+        self.status = Peer.CONNECTED
         self.emit('connect')
         self.send_version()
 
@@ -51,42 +72,30 @@ class Peer(asyncio.Protocol, EventEmitter):
         self.receive_data()
 
     def eof_received(self):
-        self.logger.debug('eof received')
-        self.transport.close()
-        if not self.future.done():
-            self.future.set_result(True)
+        if self.transport.can_write_eof():
+            self.transport.write_eof()
+        self.disconnect()
 
     def connection_lost(self, error):
         if error:
             self.logger.exception(error)
         else:
             self.logger.debug('connection lost')
-        self.transport.close()
-        if not self.future.done():
-            self.future.set_result(True)
         super().connection_lost(error)
 
+    def connect(self):
+        asyncio.ensure_future(self.future)
+
+    def disconnect(self):
+        if self.status != Peer.DISCONNECTED:
+            self.transport.close()
+            self.status = Peer.DISCONNECTED
+
     def receive_data(self):
-        if len(self.receive_buffer) > self.MAX_RECEIVE_BUFFER:
+        if len(self.receive_buffer) > Peer.MAX_RECEIVE_BUFFER:
             self.connection_lost()
         else:
             self.read_message()
-
-    def on_ping(self, message):
-        self.send_pong(message.nonce)
-
-    def on_verack(self, message):
-        self.status = self.READY
-        self.emit('ready')
-
-    def on_version(self, message):
-        self.version = message.version
-        self.subversion = message.subversion
-        self.best_height = message.start_height
-        verack_response = self.messages.Verack()
-        self.send_message(verack_response)
-        if not self.version_sent:
-            self.send_version()
 
     def send_message(self, message):
         self.transport.write(message.serialize())
