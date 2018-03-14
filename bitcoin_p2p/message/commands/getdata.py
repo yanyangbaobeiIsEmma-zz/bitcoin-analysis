@@ -3,7 +3,7 @@ from .message import Message
 
 
 class GetDataMessage(Message):
-    def __init__(self, inventories, *, options):
+    def __init__(self, inventories = [], *, options):
         super().__init__('getdata', options = options)
         self.inventories = inventories
 

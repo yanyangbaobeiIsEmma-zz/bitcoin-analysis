@@ -2,7 +2,7 @@ from .message import Message
 
 
 class MerkleBlockMessage(Message):
-    def __init__(self, merkle_block, *, options):
+    def __init__(self, merkle_block = None, *, options):
         super().__init__('merkleblock', options = options)
         self.merkle_block = merkle_block
 

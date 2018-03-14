@@ -42,8 +42,8 @@ def read_address(reader):
     }
 
 def sanitize_start_stop(obj = {}):
-    starts = obj['starts']
-    stop = obj['stop']
+    starts = obj.get('starts')
+    stop = obj.get('stop')
     if starts:
         for i in range(len(starts)):
             if isinstance(starts[i], str):

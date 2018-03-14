@@ -7,7 +7,7 @@ from bitcoin_lib.networks import Network
 class Message:
     def __init__(self, command, *, options):
         self.command = command
-        self.network = options.get('network', Network.get('mainnet'))
+        self.network = options['network']
 
     def get_payload(self):
         return b''
@@ -28,8 +28,8 @@ class Message:
         return writer.serialize()
 
     @classmethod
-    def deserialize(cls, payload):
-        message = cls(options = {})
+    def deserialize(cls, network, payload):
+        message = cls(options = {'network': network})
         message.set_payload(payload)
         return message
 

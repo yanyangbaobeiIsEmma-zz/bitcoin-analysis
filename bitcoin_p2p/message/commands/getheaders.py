@@ -6,10 +6,10 @@ from .message import Message
 class GetHeadersMessage(Message):
     def __init__(self, arg = {}, *, options):
         super().__init__('getblocks', options = options)
-        self.version = options.protocol_version
+        self.version = options.get('protocol_version')
         arg = sanitize_start_stop(arg)
-        self.starts = arg.starts
-        self.stop = arg.stop
+        self.starts = arg['starts']
+        self.stop = arg['stop']
 
     def get_payload(self):
         writer = BytesWriter()

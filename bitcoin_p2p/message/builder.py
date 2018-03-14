@@ -1,10 +1,11 @@
+import functools
 from bitcoin_lib.networks import Network
 from .commands import message_map
 
 
 def builder(options):
     options['network'] = options.get('network', Network.get('mainnet'))
-    options['protocol_version'] = options.get('protocol_version', 70016)
+    options['protocol_version'] = options.get('protocol_version', 70015)
 
     commands_map = {
         'addr': 'Address',
@@ -34,7 +35,7 @@ def builder(options):
     }
 
     commands = {
-        commands_map[command]: lambda args = {}: message_map[command](args, options = options)
+        commands_map[command]: functools.partial(message_map[command], options = options)
         for command in commands_map
     }
 

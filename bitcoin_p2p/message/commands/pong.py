@@ -4,7 +4,7 @@ from .message import Message
 
 
 class PongMessage(Message):
-    def __init__(self, nonce, *, options):
+    def __init__(self, nonce = None, *, options):
         super().__init__('pong', options = options)
         self.nonce = nonce or get_nonce()
 

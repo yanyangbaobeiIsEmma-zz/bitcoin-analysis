@@ -3,7 +3,7 @@ from .message import Message
 
 
 class NotFoundMessage(Message):
-    def __init__(self, inventories, *, options):
+    def __init__(self, inventories = [], *, options):
         super().__init__('notfound', options = options)
         self.inventories = inventories
 

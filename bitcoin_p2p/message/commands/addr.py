@@ -5,7 +5,7 @@ from .message import Message
 
 
 class AddrMessage(Message):
-    def __init__(self, addresses, *, options):
+    def __init__(self, addresses = [], *, options):
         super().__init__('addr', options = options)
         self.addresses = addresses
 

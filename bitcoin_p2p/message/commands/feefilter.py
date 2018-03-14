@@ -3,7 +3,7 @@ from .message import Message
 
 
 class FeeFilterMessage(Message):
-    def __init__(self, fee_rate, *, options):
+    def __init__(self, fee_rate = None, *, options):
         super().__init__('feefilter', options = options)
         self.fee_rate = fee_rate
 

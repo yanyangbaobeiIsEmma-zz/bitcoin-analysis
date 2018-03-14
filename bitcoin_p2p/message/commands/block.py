@@ -2,7 +2,7 @@ from .message import Message
 
 
 class BlockMessage(Message):
-    def __init__(self, block, *, options):
+    def __init__(self, block = None, *, options):
         super().__init__('block', options = options)
         self.block = block
 

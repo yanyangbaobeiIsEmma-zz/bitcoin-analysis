@@ -3,7 +3,7 @@ from .message import Message
 
 
 class InvMessage(Message):
-    def __init__(self, inventories, *, options):
+    def __init__(self, inventories = [], *, options):
         super().__init__('inv', options = options)
         self.inventories = inventories
 

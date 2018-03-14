@@ -2,7 +2,7 @@ from .message import Message
 
 
 class TxMessage(Message):
-    def __init__(self, transaction, *, options):
+    def __init__(self, transaction = None, *, options):
         super().__init__('transaction', options = options)
         self.transaction = transaction or Transaction()
 

@@ -48,7 +48,7 @@ class Messages:
 
     def _build(self, command, payload):
         if command in self.builder['commands_map']:
-            return message_map[command].deserialize(payload)
+            return message_map[command].deserialize(self.network, payload)
 
     def add(self, key, name, Command):
         self.builder.add(key, Command)
